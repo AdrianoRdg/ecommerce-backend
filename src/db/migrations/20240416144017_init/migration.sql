@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE "category" (
     "id" SERIAL NOT NULL,
-    "name" VARBIT(50) NOT NULL,
+    "name" VARCHAR(50) NOT NULL,
     "image_link" VARCHAR(250),
     "created_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_date" TIMESTAMP(3),
