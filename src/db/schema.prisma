@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model category {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarBit(50)
+  imageLink   String?   @map("image_link") @db.VarChar(250)
+  createdDate DateTime  @default(now()) @map("created_date")
+  updatedDate DateTime? @map("updated_date")
+  product     product[]
+}
+
+model product {
+  id               Int       @id @default(autoincrement())
+  name             String
+  sku              String    @db.VarChar(50)
+  categoryId       Int       @map("category_id")
+  category         category  @relation(fields: [categoryId], references: [id])
+  description      String    @db.VarChar(250)
+  largeDescription String    @map("large_description") @db.VarChar(500)
+  price            Decimal
+  discountPrice    Decimal   @map("discount_price")
+  discountPercent  Int?      @map("discount_percent")
+  isNew            Boolean   @map("is_new")
+  imageLink        String    @map("image_link") @db.VarChar(250)
+  otherImagesLink  String    @map("other_images_link") @db.VarChar(1000)
+  createdDate      DateTime  @default(now()) @map("created_date")
+  updatedDate      DateTime? @map("updated_date")
+}
