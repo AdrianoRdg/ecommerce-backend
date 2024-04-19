@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { category, product } from '@prisma/client';
 import { CategoryService } from 'src/category/category.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { generateSKU } from 'src/utils/sku.utils';
@@ -13,34 +12,44 @@ export class ProductService {
     private readonly categoryService: CategoryService,
   ) {}
 
-  async updateSku(product: product, category: category) {
-    const sku = generateSKU(
-      product.name,
-      product.id,
-      category.name,
-      category.id,
-    );
-
-    return await this.prismaService.product.update({
-      where: { id: product.id },
-      data: { sku },
-    });
-  }
-
   async create(createProductDto: CreateProductDto) {
     const category = await this.categoryService.findOne(
       createProductDto.categoryId,
     );
 
-    const product = await this.prismaService.product.create({
-      data: {
-        ...createProductDto,
-        sku: 'pending',
-        discountPrice: 0,
-      },
-    });
+    try {
+      let discountPrice = 0;
 
-    return this.updateSku(product, category);
+      if (createProductDto.discountPercent) {
+        const discount =
+          createProductDto.price * (createProductDto.discountPercent / 100);
+        discountPrice = createProductDto.price - discount;
+      }
+
+      return await this.prismaService.$transaction(async (prisma) => {
+        const product = await prisma.product.create({
+          data: {
+            ...createProductDto,
+            sku: 'pending',
+            discountPrice,
+          },
+        });
+
+        const sku = generateSKU(
+          product.name,
+          product.id,
+          category.name,
+          category.id,
+        );
+
+        return await prisma.product.update({
+          where: { id: product.id },
+          data: { sku },
+        });
+      });
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   async findAll() {
