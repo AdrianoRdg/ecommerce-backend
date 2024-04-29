@@ -1,7 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { ProductService } from './product.service';
+import {
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductService } from './product.service';
 
 @Controller('product')
 export class ProductController {
@@ -13,13 +24,44 @@ export class ProductController {
   }
 
   @Get()
-  findAll() {
-    return this.productService.findAll();
+  findAll(
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('pageSize', new DefaultValuePipe(16), ParseIntPipe)
+    pageSize?: number,
+    @Query('orderBy') orderBy?: 'asc' | 'desc',
+  ) {
+    return this.productService.findAll(page, pageSize, orderBy);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productService.findOne(+id);
+  }
+
+  @Get('category/:category')
+  findByCategoryName(
+    @Param('category') category: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('pageSize', new DefaultValuePipe(16), ParseIntPipe)
+    pageSize?: number,
+    @Query('orderBy') orderBy?: 'asc' | 'desc',
+  ) {
+    return this.productService.findByCategoryName(
+      category,
+      page,
+      pageSize,
+      orderBy,
+    );
+  }
+
+  @Get('category-by-id/:id')
+  findByCategoryId(
+    @Param('id') id: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('pageSize', new DefaultValuePipe(16), ParseIntPipe)
+    pageSize?: number,
+  ) {
+    return this.productService.findByCategoryId(+id, page, pageSize);
   }
 
   @Patch(':id')
